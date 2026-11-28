@@ -1,0 +1,37 @@
+# The CLA check: every outside contributor signs CLA.md once, by a comment on their pull request.
+# The owner (vindotski) and Dependabot are allowlisted.
+# Signatures are kept on the cla-signatures branch, never on main.
+name: CLA
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [opened, closed, synchronize]
+
+permissions: {}
+
+jobs:
+  cla:
+    if: >-
+      github.event_name == 'pull_request_target' ||
+      (github.event.issue.pull_request &&
+       (github.event.comment.body == 'recheck' ||
+        github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA'))
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+      statuses: write
+    steps:
+      - name: CLA Assistant
+        # v2.6.1. It never checks out the pull request's code.
+        uses: contributor-assistant/github-action@ca4a40a7d1004f18d9960b404b97e5f30a505a08
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          path-to-signatures: signatures/cla.json
+          path-to-document: https://github.com/vindotski/sokoban/blob/main/CLA.md
+          branch: cla-signatures
+          allowlist: dependabot[bot],vindotski
